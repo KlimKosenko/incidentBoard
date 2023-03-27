@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Send blog</title>
+</head>
+<body>
+    <div style="margin:20px;">
+        <input id = "img" name="img" type="file" accept="image/png, image/gif, image/jpeg" required>
+    </div>
+    <form id="IncidentForm">
+        <div style="margin:20px;">
+            <label for="lat">lat:</label>
+            <input type="number" name = "lat" id="lat" required>
+            <label for="lon">lan: </label>
+            <input type="number" name = "lon" id="lon" required>
+        </div>
+        <div style="margin:20px;">
+            <textarea name="info" id="info" required></textarea>
+        </div>
+        <button id="sendBtn" style="margin-left:20px;">Відправити</button>
+    </form>
+    <script>
+        let btn = document.getElementById("sendBtn");
+        btn.addEventListener('click', uploadPicture);
+
+        function uploadPicture(event){
+            event.preventDefault();
+            let picture = document.getElementById("img").files[0];
+            const form_data = new FormData();
+            form_data.append('image', picture)
+
+            fetch("http://localhost:8000/server.php", { // Your POST endpoint
+                method: 'POST',
+                body: form_data // This is your file object
+                }).then(
+                    response => response.json() // if the response is a JSON object
+                ).then(
+                    success => sendData(success['img_id']) // Handle the success response object
+                ).catch(
+                    error => console.log(error) // Handle the error response object
+                );
+
+        };
+        function sendData(picture_id){
+            let data = new FormData(document.getElementById("IncidentForm"));
+            var object = {};
+            data.forEach((value, key) => object[key] = value);
+            object["picture_id"] = picture_id;
+            var jsonData = JSON.stringify(object);
+            console.log(jsonData);
+            fetch("http://localhost:8000/server.php", {
+                method: "POST",
+                body: jsonData,
+            })
+            .then(res => {
+                if (res.status != 200) { throw new Error("Bad Server Response"); }
+                return res.json();
+            })
+            .then(res => console.log(res))
+            .catch(err => console.error(err));
+        } 
+    </script>
+</body>
+</html>
